@@ -1528,7 +1528,7 @@ static bool AddClientToGame(ClientEntry *client, const uint8 id[16], const uint8
    if(!fegame)
     fegame=&Games[wg];
   }
-  else if(Games[wg].TotalControllers && !memcmp(Games[wg].id,id,16)) /* A match was found! */
+  else if(Games[wg].TotalControllers) /* A match was found! */
   {
    game = &Games[wg];
    break;
