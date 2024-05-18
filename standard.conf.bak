@@ -6,7 +6,7 @@
 
 maxclients	50	; Maximum number of clients
 connecttimeout	5	; Connection(login) timeout(in seconds)
-port		4047	; Port to listen on
+port		4044	; Port to listen on
 ;password	sexybeef
 
 idletimeout	30	; Idle timeout(in seconds).  Disconnect a client if no data is received from them since X seconds ago.
