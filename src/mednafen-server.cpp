@@ -2258,7 +2258,7 @@ if(!Games[whichgame].clients_are_ready)
 	if(!Games[whichgame].Clients[n]->cmdSend && Games[whichgame].Clients[n]->is_udp)
 	{		
         sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
-		 sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
+		// sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
 		  //      sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
 		//	sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
 	}
