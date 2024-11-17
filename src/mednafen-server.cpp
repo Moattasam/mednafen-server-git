@@ -83,14 +83,14 @@ SOCKET k_socket::ndfs = 0;
 fd_set k_socket::sockets;
 fd_set k_socket::temp;
 	char bufa[12345] = "heloOo";
-	uint8 send_stuff[256];
+	uint8 send_stuff[1024];
 	SOCKET main_udp;
 //	SOCKET main_udp_send;
 #ifndef SOL_TCP
 #define 	SOL_TCP   IPPROTO_TCP
 #endif
 struct timeval tv;
-
+#define TESTSERV 1
 
 
 int ret =0;
@@ -233,6 +233,11 @@ struct ClientEntry
 	sockaddr_in addrc;
 	sockaddr_in addrl;
 	int is_udp = 0;
+	uint8 iamnew = 0;
+	uint8 buttons_buffered[3][0x1000];
+	uint8 input_read_ptr;
+	uint32 frame_got[0x10];
+	uint8 input_buffer[0x10][256];
 	//SOCKET sock;
 };
 
@@ -276,6 +281,7 @@ struct GameEntry
 	int waiting_ = 0;
     uint8 joybuf[MaxTotalControllersDataSize + 1]; /* X player data + 1 command byte8 */
 	int clients_are_ready;
+
 };
 
 struct CONFIG
@@ -1299,7 +1305,8 @@ static void MakeSendTCP(ClientEntry *client, const uint8 *data, uint32 len)
 static void SendCommand(ClientEntry *client, uint8 cmd, const uint8 *data, uint32 len)
 {
  uint8 poo[MaxTotalControllersDataSize + 1];
-client->cmdSend = 3;
+client->cmdSend = cmd==0x94 ? 2 : 1;
+
  memset(poo, 0, client->total_controllers_data_size);
 
  poo[client->total_controllers_data_size] = cmd;
@@ -1652,7 +1659,7 @@ static bool AddClientToGame(ClientEntry *client, const uint8 id[16], const uint8
   game->last_time = MBL_Time64();
   game->ProtocolVersion = client->protocol_version;
   memcpy(game->EmulatorID, emu_id, 64);
-  memcpy(game->id, id, 16);
+  memcpy(game->id, id, 16); 
  }
 
  for(int n = 0; n < MaxClientsPerGame; n++)
@@ -1912,7 +1919,7 @@ memset(&serAddr, 0 , sizeof(serAddr));
 
 
 		main_udp = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-		int one = 1;
+		int one = 262144;
 		int zoo = setsockopt(main_udp, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
 		if(main_udp != SOCKET_ERROR)
 		{
@@ -1979,11 +1986,23 @@ start_loop_time = MBL_Time64();
 
       fcntl(AllClients[n].TCPSocket, F_SETFL, fcntl(AllClients[n].TCPSocket, F_GETFL) | O_NONBLOCK);
 	  AllClients[n].input_got = 0;
+	  AllClients[n].counter = 0;
+	  AllClients[n].iamnew = 0;
 	  AllClients[n].lag_frame = -1;
       AllClients[n].InUse = true;
       AllClients[n].timeconnect_us = MBL_Time64();
       AllClients[n].id = n;
 	  AllClients[n].prev_send_frame = 0;
+		memset(AllClients[n].buttons_buffered[0], 0, 0x1000);
+		memset(AllClients[n].buttons_buffered[1], 0, 0x1000);
+		memset(AllClients[n].buttons_buffered[2], 0, 0x1000);
+		memset(AllClients[n].frame_got, 0, 0x40);
+		
+		for(int x = 0; x<0x10; x++)
+	memset(AllClients[n].input_buffer[x], 0, 256);
+	  AllClients[n].input_read_ptr = 0;
+ 
+ 
       if(ListenSockets[lsi].family == AF_INET6)
        inet_ntop(ListenSockets[lsi].family, &sockin6.sin6_addr, tbuf, sizeof(tbuf));
       else
@@ -2090,7 +2109,7 @@ start_loop_time = MBL_Time64();
 			{
 				memcpy(AllClients[n].local_controller_buffer, databuf+5, AllClients[n].local_controllers_data_size);		//databuf+4 contains command byte, not need for us
 				AllClients[n].counter = countex;		//update counter 
-			//	AllClients[n].input_got++;
+			//	AllClients[n].input_got = 1;
 			}
 			
 			if(AllClients[n].lag_frame==-1)					//init lag frame for debugging
@@ -2195,6 +2214,11 @@ uint32 countex = 0;
 	{
 		Games[whichgame].clients_are_ready = 0;
 	}
+	if(client->iamnew)
+	{
+		client->iamnew = 0;
+		Games[whichgame].last_time = CurGameTimeUS;
+	}
 //	else
 //		Games[whichgame].waiting_ =1;
 //	if(client->input_got)printf("Inputs_got: %d, rdy: %d\n", client->input_got, Games[whichgame].clients_are_ready);
@@ -2232,7 +2256,7 @@ uint32 countex = 0;
    //
 if(!Games[whichgame].clients_are_ready)
 {
-	if((Games[whichgame].last_time + last_time_inc) > CurGameTimeUS)
+	if((Games[whichgame].last_time + last_time_inc) > (CurGameTimeUS-1000))
    continue;
 
 }
@@ -2246,28 +2270,34 @@ if(!Games[whichgame].clients_are_ready)
     if(!Games[whichgame].Clients[n])
      continue;
  //Games[whichgame].Clients[n]->prev_send_frame = 0;
- Games[whichgame].Clients[n]->ready = 0;
+	Games[whichgame].Clients[n]->ready = 0;
     Games[whichgame].Clients[n]->sendqcork = 0;
     MakeSendTCP(Games[whichgame].Clients[n], Games[whichgame].joybuf, Games[whichgame].TotalControllersDataSize + 1);
-//	printf("Time before UDP: %lld\n", MBL_Time64());
-	//	main_socket.set_address( Games[whichgame].Clients[n]->ip, ServerConfig.Port+1);
-//	send_stuff[0] = Games[whichgame].Clients[n]->frame_con;
-		memcpy(&send_stuff[0], &Games[whichgame].Clients[n]->frame_con, 4);
-		memcpy(&send_stuff[4], Games[whichgame].joybuf, Games[whichgame].TotalControllersDataSize);
-		//printf("cmd was? %d, %d\n", Games[whichgame].cmdSend, Games[whichgame].Clients[n]->frame_con);
-	if(!Games[whichgame].Clients[n]->cmdSend && Games[whichgame].Clients[n]->is_udp)
+
+		memcpy(&Games[whichgame].Clients[n]->buttons_buffered[0], Games[whichgame].Clients[n]->buttons_buffered[1], Games[whichgame].TotalControllersDataSize+5);
+		memcpy(&Games[whichgame].Clients[n]->buttons_buffered[1], Games[whichgame].Clients[n]->buttons_buffered[2], Games[whichgame].TotalControllersDataSize+5);
+		memcpy(&Games[whichgame].Clients[n]->buttons_buffered[2][0], &Games[whichgame].Clients[n]->frame_con, 4);
+		memcpy(&Games[whichgame].Clients[n]->buttons_buffered[2][4], Games[whichgame].joybuf, Games[whichgame].TotalControllersDataSize +1);
+		
+		if(Games[whichgame].Clients[n]->cmdSend)
+			Games[whichgame].Clients[n]->buttons_buffered[2][4+Games[whichgame].TotalControllersDataSize] = Games[whichgame].Clients[n]->cmdSend;
+			
+		memcpy(&send_stuff[0], Games[whichgame].Clients[n]->buttons_buffered[0], Games[whichgame].TotalControllersDataSize+5);
+		memcpy(&send_stuff[Games[whichgame].TotalControllersDataSize+5], Games[whichgame].Clients[n]->buttons_buffered[1], Games[whichgame].TotalControllersDataSize+5);
+		memcpy(&send_stuff[Games[whichgame].TotalControllersDataSize*2+10], Games[whichgame].Clients[n]->buttons_buffered[2], Games[whichgame].TotalControllersDataSize+5);
+
+	
+	if(Games[whichgame].Clients[n]->is_udp)
 	{		
-        sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
-		// sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
-		  //      sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
-		//	sendto(main_udp, send_stuff, 4+Games[whichgame].TotalControllersDataSize+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
+        sendto(main_udp, send_stuff, 15+Games[whichgame].TotalControllersDataSize*3+1, 0, (sockaddr*)&Games[whichgame].Clients[n]->addrl, 16);
+
 	}
 	
 //	printf("Time after UDP: %lld\n", MBL_Time64());
     Games[whichgame].Clients[n]->sendqcork = 1;
 	if(Games[whichgame].Clients[n]->input_got)Games[whichgame].Clients[n]->input_got--;
 	Games[whichgame].Clients[n]->frame_con++;
-  if(Games[whichgame].Clients[n]->cmdSend)Games[whichgame].Clients[n]->cmdSend--;
+  Games[whichgame].Clients[n]->cmdSend = 0;
 	//printf("Object %d, counter %d\n", n, Games[whichgame].Clients[n]->frame_con);
    } // A game's clients
  
@@ -2317,19 +2347,10 @@ while(sleep_amount>(timers-curgametime));
 */
 
 //printf("b %lld\n", MBL_Time64());
-
-{
-///timeBeginPeriod(sleep_amount/1000);
-
-}
  //std::this_thread::sleep_for(std::chrono::microseconds(sleep_amount));
  //printf("a %lld\n", MBL_Time64());
   }
-else 
-{
-	//printf("over time , time get buttons: %lld, time send buttons: %lld, sleep time: %lld\n", get_buttons_time-start_loop_time, send_buttons_time-get_buttons_time, MBL_Time64()-send_buttons_time);
-	//printf("previous frame , time get buttons: %lld, time send buttons: %lld, sleep time: %lld, sleep_amount: %lld\n", pget_buttons_time-pstart_loop_time, psend_buttons_time-pget_buttons_time, psleep_time, psleep_amount);
-}
+
 //	printf("overtime: %lld, %lld\n", sleep_amount, MBL_Time64() - curgametime);
 //  pstart_loop_time =  start_loop_time;
 //  pget_buttons_time =  get_buttons_time;
