@@ -638,7 +638,7 @@ static int CheckNBTCPReceive(ClientEntry *client)
 
 			memcpy(client->local_controller_buffer, &client->nbtcp[1], client->local_controllers_data_size);
 				client->input_got = 1;
-	
+	//printf("TCL %d Frame is %d\n", client->id, client->counter);
 		}
 		//	  printf("Time between receive: %lld\n", MBL_Time64() - client->incoming_tcp_pref);
 		//	   client->incoming_tcp_pref = MBL_Time64();
@@ -1377,8 +1377,8 @@ static uint32 EncodePlayerNumData(ClientEntry *client, uint8 *out_buffer, uint32
   assert(datalen <= out_buffer_size);
 
   en32(&out_buffer[0], mps);
-  en32(&out_buffer[4], 0);
-
+  en32(&out_buffer[4], client->id);
+printf("id %d\n", out_buffer[4]);
   memcpy(out_buffer + 8, client->nickname, strlen(client->nickname));
  }
  else
@@ -2099,16 +2099,20 @@ start_loop_time = MBL_Time64();
 		continue;
   }
  if(received_bytes>0)
-	for(int n = 0; n <  ServerConfig.MaxClients; n++)			//seek address what we got from recvfrom()
+	//for(int n = 0; n <  ServerConfig.MaxClients; n++)			//seek address what we got from recvfrom()
 	{
-	   if(AllClients[n].addrc.sin_addr.s_addr==from.sin_addr.s_addr)		//gotcha
+	//   if(AllClients[n].addrc.sin_addr.s_addr==from.sin_addr.s_addr)		//gotcha
 	   {
 		   
 			memcpy(&countex,databuf, 4);
+			int n = countex >> 24;
+			countex &= 0xFFFFFF;
 			if(countex>AllClients[n].counter)				//buttons not from past
 			{
 				memcpy(AllClients[n].local_controller_buffer, databuf+5, AllClients[n].local_controllers_data_size);		//databuf+4 contains command byte, not need for us
 				AllClients[n].counter = countex;		//update counter 
+				
+			//	printf("UCL %d Frame is %d\n", n, countex);
 			//	AllClients[n].input_got = 1;
 			}
 			

@@ -4,7 +4,7 @@ time64.o: time64.cpp ../include/config.h /usr/include/unistd.h \
  /usr/include/machine/ieeefp.h /usr/include/sys/features.h \
  /usr/include/cygwin/config.h /usr/include/sys/cdefs.h \
  /usr/include/machine/_default_types.h \
- /usr/lib/gcc/x86_64-pc-msys/13.3.0/include/stddef.h \
+ /usr/lib/gcc/x86_64-pc-cygwin/12/include/stddef.h \
  /usr/include/sys/types.h /usr/include/machine/_types.h \
  /usr/include/sys/_types.h /usr/include/sys/_stdint.h \
  /usr/include/machine/endian.h /usr/include/machine/_endian.h \
@@ -19,11 +19,11 @@ time64.o: time64.cpp ../include/config.h /usr/include/unistd.h \
  /usr/include/machine/time.h /usr/include/sys/_locale.h \
  /usr/include/cygwin/time.h /usr/include/signal.h \
  /usr/include/sys/signal.h \
- /usr/lib/gcc/x86_64-pc-msys/13.3.0/include/stdint.h \
- /usr/include/stdint.h /usr/include/sys/_intsup.h \
- /usr/include/cygwin/signal.h /usr/include/sys/ucontext.h \
- /usr/include/sys/time.h /usr/include/machine/_time.h \
- /usr/include/stdio.h /usr/lib/gcc/x86_64-pc-msys/13.3.0/include/stdarg.h \
+ /usr/lib/gcc/x86_64-pc-cygwin/12/include/stdint.h /usr/include/stdint.h \
+ /usr/include/sys/_intsup.h /usr/include/cygwin/signal.h \
+ /usr/include/sys/ucontext.h /usr/include/sys/time.h \
+ /usr/include/machine/_time.h /usr/include/stdio.h \
+ /usr/lib/gcc/x86_64-pc-cygwin/12/include/stdarg.h \
  /usr/include/sys/stdio.h /usr/include/errno.h /usr/include/sys/errno.h \
  /usr/include/string.h /usr/include/strings.h /usr/include/sys/string.h \
  types.h /usr/include/inttypes.h time64.h
@@ -39,7 +39,7 @@ time64.o: time64.cpp ../include/config.h /usr/include/unistd.h \
 /usr/include/cygwin/config.h:
 /usr/include/sys/cdefs.h:
 /usr/include/machine/_default_types.h:
-/usr/lib/gcc/x86_64-pc-msys/13.3.0/include/stddef.h:
+/usr/lib/gcc/x86_64-pc-cygwin/12/include/stddef.h:
 /usr/include/sys/types.h:
 /usr/include/machine/_types.h:
 /usr/include/sys/_types.h:
@@ -69,7 +69,7 @@ time64.o: time64.cpp ../include/config.h /usr/include/unistd.h \
 /usr/include/cygwin/time.h:
 /usr/include/signal.h:
 /usr/include/sys/signal.h:
-/usr/lib/gcc/x86_64-pc-msys/13.3.0/include/stdint.h:
+/usr/lib/gcc/x86_64-pc-cygwin/12/include/stdint.h:
 /usr/include/stdint.h:
 /usr/include/sys/_intsup.h:
 /usr/include/cygwin/signal.h:
@@ -77,7 +77,7 @@ time64.o: time64.cpp ../include/config.h /usr/include/unistd.h \
 /usr/include/sys/time.h:
 /usr/include/machine/_time.h:
 /usr/include/stdio.h:
-/usr/lib/gcc/x86_64-pc-msys/13.3.0/include/stdarg.h:
+/usr/lib/gcc/x86_64-pc-cygwin/12/include/stdarg.h:
 /usr/include/sys/stdio.h:
 /usr/include/errno.h:
 /usr/include/sys/errno.h:
